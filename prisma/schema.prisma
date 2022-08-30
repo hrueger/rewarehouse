@@ -1,0 +1,71 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id           String   @id @default(uuid())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  manufacturer String
+  name         String
+  price        Float
+  items        Item[]
+  category     Category @relation(fields: [categoryId], references: [id])
+  categoryId   String
+}
+
+model Item {
+  id                String   @id @default(uuid())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  purchaseDate      DateTime
+  product           Product  @relation(fields: [productId], references: [id])
+  productId         String
+  group             Group?   @relation(fields: [groupId], references: [id])
+  groupId           String?
+  currentLocation   Location @relation(fields: [currentLocationId], references: [id])
+  currentLocationId String
+  labelCode         String?
+  status            Status   @default(AVAILABLE)
+}
+
+model Group {
+  id         String   @id @default(uuid())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  name       String
+  items      Item[]
+  category   Category @relation(fields: [categoryId], references: [id])
+  categoryId String
+}
+
+model Location {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  name      String
+  color     String
+  items     Item[]
+  default   Boolean  @default(false)
+}
+
+model Category {
+  id       String    @id @default(uuid())
+  name     String
+  products Product[]
+  groups   Group[]
+}
+
+enum Status {
+  AVAILABLE
+  LENT
+  USED
+}
