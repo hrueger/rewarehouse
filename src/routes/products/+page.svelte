@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$lib/form';
+	import { formatLength } from '$lib/helpers';
 	import type { PageData } from '../../../.svelte-kit/types/src/routes/products/$types';
 
 	export let data: PageData;
@@ -25,6 +26,7 @@
 					<th>Category</th>
 					<th>Manufacturer</th>
 					<th>Name</th>
+					<th>Length / Size</th>
 					<th>Price</th>
 					<th>Count</th>
 					<th></th>
@@ -36,6 +38,7 @@
 						<td>{product.category.name}</td>
 						<td>{product.manufacturer}</td>
 						<td>{product.name}</td>
+						<td>{formatLength(product.length)}</td>
 						<td>{product.price} €</td>
 						<td>{product._count.items}</td>
 						<td>
@@ -80,6 +83,9 @@
 					</td>
 					<td>
 						<input type="text" name="name" class="form-control" placeholder="Name" />
+					</td>
+					<td>
+						<input type="number" name="length" class="form-control" min="0" max="500" step="0.2" placeholder="Length" />
 					</td>
 					<td>
 						<input type="number" name="price" class="form-control" min="0" max="10000" step="0.01" placeholder="Price" />

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$lib/form';
+	import { formatLength } from '$lib/helpers';
 	import type { PageData } from '../../../.svelte-kit/types/src/routes/items/$types';
 
 	export let data: PageData;
@@ -31,6 +32,7 @@
 					<th>Category</th>
 					<th>Manufacturer</th>
 					<th>Name</th>
+					<th>Lenth / Size</th>
 					<th>Location</th>
 					<th>Status</th>
 					<th></th>
@@ -42,6 +44,7 @@
 						<td>{item.product.category.name}</td>
 						<td>{item.product.manufacturer}</td>
 						<td>{item.product.name}</td>
+						<td>{formatLength(item.product.length)}</td>
 						<td class="table-{item.currentLocation.color}">{item.currentLocation.name}</td>
 						<td class="table-{STATUS[item.status]?.color}">{STATUS[item.status]?.name}</td>
 						<td>

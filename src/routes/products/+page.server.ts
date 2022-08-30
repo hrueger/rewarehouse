@@ -17,11 +17,13 @@ export const load: PageServerLoad = async () => {
 export const POST: Action = async ({ request }) => {
 	const form = await request.formData();
 	const price = form.get('price') as string;
+	const length = form.get('length') as string;
 	const { id } = await prisma.product.create({
 		data: {
 			manufacturer: form.get('manufacturer') as string || "",
 			name: form.get('name') as string || "",
 			price: price.includes(",") ? parseFloat(price.replace(",", ".")) : parseFloat(price),
+			length: length.includes(",") ? parseFloat(length.replace(",", ".")) : parseFloat(length),
 			categoryId: form.get('category') as string || "",
 		},
 	});
