@@ -1,3 +1,3 @@
-export function formatLength(length: number): string {
+export function formatLength(length?: number | null): string {
     return length ? `${length} m` : "";
 }

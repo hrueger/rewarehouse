@@ -1,13 +1,13 @@
 import type { PageServerLoad, Action } from './$types';
-import { PrismaClient, type Item } from '@prisma/client';
-import { fixDates, type Extended } from '$lib/helpers.server';
+import { PrismaClient } from '@prisma/client';
+import { fixDates, type ExtendedArray } from '$lib/helpers.server';
 
 const prisma = new PrismaClient();
 
 export const load: PageServerLoad = async () => {
 	const items = await prisma.item.findMany({ include: { currentLocation: true, product: { include: { category: true } } } });
 	return {
-		items: fixDates(items) as Extended<Item>[],
+		items: fixDates(items) as ExtendedArray<typeof items>,
 		categories: await prisma.category.findMany(),
 	};
 };
