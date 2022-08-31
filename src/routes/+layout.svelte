@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Header from '$lib/header/Header.svelte';
+	import { SvelteToast } from '@zerodevx/svelte-toast'
 	import '../app.scss';
 </script>
 
@@ -15,8 +16,20 @@
 	&copy; 2022 Hannes Rüger
 </footer>
 
+<SvelteToast />
+
 <style>
-	.minheight {
-		min-height: 100vh;
+	@media screen {
+		.minheight {
+			min-height: 100vh;
+		}
+	}
+	@media print {
+		footer {
+			display: none;
+		}
+		main.container {
+			max-width: 100%;
+		}
 	}
 </style>

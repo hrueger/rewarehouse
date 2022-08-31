@@ -2,15 +2,79 @@
 	import { enhance } from '$lib/form';
 	import { formatLength } from '$lib/helpers';
 	import type { PageData } from '../../../.svelte-kit/types/src/routes/items/$types';
+    import { Html5Qrcode } from 'html5-qrcode'
+    import { onMount } from 'svelte'
+	import type { Item } from '@prisma/client';
 
 	export let data: PageData;
+
+    let html5Qrcode: Html5Qrcode;
+	let showScanModal = false;
+	let scanStatus: "scanning" | "saving" = "scanning";
+	let currentItem: Item;
+
+    onMount(() => {
+		html5Qrcode = new Html5Qrcode('reader')
+	});
+
+    function start() {
+        html5Qrcode.start(
+            { facingMode: 'environment' },
+            {
+                fps: 10,
+                qrbox: { width: 250, height: 100 },
+            },
+            onScanSuccess,
+			() => undefined,
+        )
+    }
+
+    async function stop() {
+        await html5Qrcode.stop()
+    }
+
+    async function onScanSuccess(decodedText: string, decodedResult: unknown) {
+		scanStatus = "saving";
+		await fetch("/items", {
+			method: "patch",
+			body: JSON.stringify({
+				labelCode: decodedText,
+				id: currentItem.id,
+			}),
+		}).then((r) => r.json())
+    }
 
 	const STATUS = {
 		AVAILABLE: { name: "Available", color: "success" },
 		LENT: { name: "Lent", color: "warning" },
 		USED: { name: "Used", color: "primary" }
 	}
+
+	async function scanAndBindLabel(id: string) {
+		showScanModal = true;
+		currentItem = data.items.find((i) => i.id === id);
+		start();
+		scanStatus = "scanning";
+	}
+
+	function closeScanModal() {
+		showScanModal = false;
+		stop();
+	}
 </script>
+
+<style>
+    reader {
+		display: inline-block;
+        width: 100%;
+        background-color: black;
+    }
+	.save-status {
+		position: absolute;
+		top: 0;
+		width: 100%;
+	}
+</style>
 
 <svelte:head>
 	<title>Items</title>
@@ -18,14 +82,7 @@
 
 <div>
 	<h1>Items</h1>
-	<form
-		action="/items"
-		method="post"
-		use:enhance={{
-			result: async ({ form }) => {
-				form.reset();
-			}
-		}}>
+	<div class="table-responsive">
 		<table class="table table-sm">
 			<thead>
 				<tr>
@@ -34,6 +91,7 @@
 					<th>Name</th>
 					<th>Lenth / Size</th>
 					<th>Location</th>
+					<th>Label</th>
 					<th>Status</th>
 					<th></th>
 				</tr>
@@ -46,30 +104,35 @@
 						<td>{item.product.name}</td>
 						<td>{formatLength(item.product.length)}</td>
 						<td class="table-{item.currentLocation.color}">{item.currentLocation.name}</td>
+						<td>{item.labelCode || ""}</td>
 						<td class="table-{STATUS[item.status]?.color}">{STATUS[item.status]?.name}</td>
-						<td>
+						<td class="d-flex gap-1">
+							<button class="btn btn-outline-warning" on:click={() => scanAndBindLabel(item.id)}>
+								<i class="fas fa-barcode"></i>
+							</button>
 							<form
 							action="/items?_method=DELETE"
 							method="post"
 							use:enhance={{
-								pending: () => (item.pending_delete = true)
+								pending: () => (item._pendingDelete = true)
 							}}
 						>
 							<input type="hidden" name="id" value={item.id} />
-							<button class="btn btn-outline-danger" disabled={item.pending_delete}>
-								{#if item.pending_delete}
+							<button class="btn btn-outline-danger" disabled={item._pendingDelete}>
+								{#if item._pendingDelete}
 									<i class="spinner-border spinner-border-sm"></i>
 								{:else}
 									<i class="fas fa-trash"></i>
 								{/if}
 							</button>
 						</form>
+
 						</td>
 					</tr>
 				{/each}
 			</tbody>
 		</table>
-	</form>
+	</div>
 
 		<!--<div
 			class="item"
@@ -96,3 +159,28 @@
 			</form>
 		</div>-->
 </div>
+
+<div class="modal" tabindex="-1" class:d-block={showScanModal}>
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Scan</h5>
+				<button type="button" class="btn-close" on:click={() => closeScanModal()}></button>
+			</div>
+			<div class="modal-body">
+				<reader id="reader" class:invisible={scanStatus !== "scanning"}/>
+				{ #if scanStatus === "saving"}
+					<div class="d-flex justify-content-center align-items-center h-100 save-status">
+						<div class="spinner spinner-border text-success"></div>
+					</div>
+				{ /if }
+			</div>
+			<div class="modal-footer d-flex justify-content-end">
+				<button type="button" class="btn btn-outline-secondary">Next</button>
+			</div>
+		</div>
+	</div>
+</div>
+{#if showScanModal}
+	<div class="modal-backdrop fade show"></div>
+{/if}
