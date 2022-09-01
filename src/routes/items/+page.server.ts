@@ -6,7 +6,19 @@ import { error } from '@sveltejs/kit';
 const prisma = new PrismaClient();
 
 export const load: PageServerLoad = async () => {
-	const items = await prisma.item.findMany({ include: { currentLocation: true, product: { include: { category: true } }, label: true } });
+	const items = await prisma.item.findMany({
+		include: {
+			currentLocation: true,
+			product: { include: { category: true } },
+			label: true,
+		},
+		orderBy: [
+			{ product: { category: { name: "asc" } } },
+			{ product: { manufacturer: "asc" } },
+			{ product: { name: "asc" } },
+			{ product: { length: "asc" } },
+		],
+	});
 	return {
 		items: fixDates(items) as ExtendedArray<typeof items>,
 		categories: await prisma.category.findMany(),

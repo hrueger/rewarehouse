@@ -5,7 +5,20 @@ import { fixDates, type ExtendedArray } from '$lib/helpers.server';
 const prisma = new PrismaClient();
 
 export const load: PageServerLoad = async () => {
-	const products = await prisma.product.findMany({ include: { category: { select: { name: true } }, _count: { select: { items: true } } } });
+	const products = await prisma.product.findMany({
+		include: {
+			category: {
+				select: { name: true },
+			},
+			_count: { select: { items: true } },
+		},
+		orderBy: [
+			{ category: { name: "asc" } },
+			{ manufacturer: "asc" },
+			{ name: "asc" },
+			{ length: "asc" },
+		],
+	});
 
 	return {
 		products: fixDates(products) as ExtendedArray<typeof products>,
