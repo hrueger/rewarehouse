@@ -39,6 +39,22 @@
 					<td>{product._count.items}</td>
 					<td>{product.price * product._count.items} €</td>
 					<td class="d-flex gap-1">
+						<form
+							action="/products?_method=PATCH"
+							method="post"
+							use:enhance={{
+								pending: () => (product._pendingCustom = "createItem")
+							}}>
+							<input type="hidden" name="id" value={product.id} />
+							<input type="hidden" name="_action" value="createItem" />
+							<button class="btn btn-outline-success" disabled={product._pendingCustom == "createItem"}>
+								{#if product._pendingCustom == "createItem"}
+									<i class="spinner-border spinner-border-sm"></i>
+								{:else}
+									<i class="fas fa-plus"></i>
+								{/if}
+							</button>
+						</form>
 						<button class="btn btn-outline-primary" on:click={() => currentlyEditedProduct = product}><i class="fas fa-pen"></i></button>
 						<form
 							action="/products?_method=DELETE"

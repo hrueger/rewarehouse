@@ -38,6 +38,19 @@ export const POST: Action = async ({ request }) => {
 
 export const PATCH: Action = async ({ request }) => {
 	const form = await request.formData();
+
+	
+	if (form.get("_action") === "createItem") {
+		await prisma.item.create({
+			data: {
+				purchaseDate: new Date(),
+				productId: form.get("id") as string,
+				currentLocationId: (await prisma.location.findFirst({ select: { id: true }, where: { default: true } }))?.id as any as string,
+			},
+		});
+		return;
+	}
+
 	const price = form.get('price') as string;
 	const length = form.get('length') as string;
 	await prisma.product.update({
