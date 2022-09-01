@@ -7,9 +7,11 @@ export function enhance(
 	{
 		pending,
 		error,
+		reset,
 		result
 	}: {
 		pending?: ({ data, form }: { data: FormData; form: HTMLFormElement }) => void;
+		reset?: ({ form }: { form: HTMLFormElement }) => void;
 		error?: ({
 			data,
 			form,
@@ -33,6 +35,12 @@ export function enhance(
 	} = {}
 ) {
 	let current_token: unknown;
+
+	function handle_reset() {
+		if (reset) {
+			reset({ form });
+		}
+	}
 
 	async function handle_submit(event: SubmitEvent) {
 		const token = (current_token = {});
@@ -72,10 +80,12 @@ export function enhance(
 	}
 
 	form.addEventListener('submit', handle_submit);
+	form.addEventListener('reset', handle_reset);
 
 	return {
 		destroy() {
 			form.removeEventListener('submit', handle_submit);
+			form.removeEventListener('reset', handle_reset);
 		}
 	};
 }

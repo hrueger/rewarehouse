@@ -16,4 +16,4 @@ type ArrayElement<ArrayType extends readonly unknown[]> =
   ArrayType extends readonly (infer ElementType)[] ? ElementType : never;
 
 export type Extended<T> = T & { _pendingDelete?: boolean };
-export type ExtendedArray<T extends Record<string, unknown>[]> = (ArrayElement<T> & { _pendingDelete?: boolean })[];
+export type ExtendedArray<T extends Record<string, unknown>[]> = (ArrayElement<T> & { _pendingDelete?: boolean, _pendingSave?: boolean })[];

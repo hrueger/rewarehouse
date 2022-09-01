@@ -36,8 +36,20 @@ export const POST: Action = async ({ request }) => {
 	});
 };
 
-export const PATCH: Action = async ({ request, locals }) => {
+export const PATCH: Action = async ({ request }) => {
 	const form = await request.formData();
+	const price = form.get('price') as string;
+	const length = form.get('length') as string;
+	await prisma.product.update({
+		where: { id: form.get('id') as string },
+		data: {
+			manufacturer: form.get('manufacturer') as string || "",
+			name: form.get('name') as string || "",
+			price: price.includes(",") ? parseFloat(price.replace(",", ".")) : parseFloat(price),
+			length: length.includes(",") ? parseFloat(length.replace(",", ".")) : parseFloat(length),
+			categoryId: form.get('category') as string || "",
+		},
+	});
 };
 
 export const DELETE: Action = async ({ request }) => {

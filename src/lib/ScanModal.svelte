@@ -82,7 +82,7 @@
 	<div slot="title">
 		Label for <i>{currentItem?.product.name}</i><br><small>({currentItem?.product.manufacturer})</small>
 	</div>
-	<div slot="main">
+	<div slot="body">
 		<reader id="reader" class:invisible={scanStatus !== "scanning"}/>
 		{ #if scanStatus === "saving"}
 			<div class="d-flex justify-content-center align-items-center h-100 save-status">
