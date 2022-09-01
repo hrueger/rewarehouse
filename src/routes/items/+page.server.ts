@@ -25,8 +25,16 @@ export const POST: Action = async ({ request }) => {
 	});
 };
 
-export const PATCH: Action = async ({ request, locals }) => {
+export const PATCH: Action = async ({ request }) => {
 	const form = await request.formData();
+	await prisma.item.update({
+		where: {
+			id: form.get('id') as string,
+		},
+		data: {
+			labelCode: form.get('labelCode') as string || "",
+		}
+	});
 };
 
 export const DELETE: Action = async ({ request }) => {

@@ -5,13 +5,15 @@
     import { Html5Qrcode } from 'html5-qrcode'
     import { onMount } from 'svelte'
 	import type { Item } from '@prisma/client';
+	import { invalidate } from '$app/navigation';
 
 	export let data: PageData;
 
     let html5Qrcode: Html5Qrcode;
 	let showScanModal = false;
 	let scanStatus: "scanning" | "saving" = "scanning";
-	let currentItem: Item;
+	let currentItem: Item & { [key: string]: any };
+	let scannedLabels = new Set<string>();
 
     onMount(() => {
 		html5Qrcode = new Html5Qrcode('reader')
@@ -34,14 +36,30 @@
     }
 
     async function onScanSuccess(decodedText: string, decodedResult: unknown) {
+		if (scannedLabels.has(decodedText)) {
+			return;
+		}
+		scannedLabels.add(decodedText);
 		scanStatus = "saving";
-		await fetch("/items", {
-			method: "patch",
-			body: JSON.stringify({
+		await fetch("/items?_method=PATCH", {
+			method: "POST",
+			headers: {
+				"Accept": "application/json",
+			},
+			body: toFormData({
 				labelCode: decodedText,
 				id: currentItem.id,
 			}),
-		}).then((r) => r.json())
+		})
+		await invalidate();
+		console.log(data.items, currentItem, data.items.indexOf(currentItem as any));
+		currentItem = data.items[data.items.findIndex((i) => i.id === currentItem.id) + 1];
+		if (currentItem) {
+			scanStatus = "scanning";
+		} else {
+			await stop();
+			showScanModal = false;
+		}
     }
 
 	const STATUS = {
@@ -50,17 +68,30 @@
 		USED: { name: "Used", color: "primary" }
 	}
 
-	async function scanAndBindLabel(id: string) {
+	async function scanAndBindLabel(item: Item) {
 		showScanModal = true;
-		currentItem = data.items.find((i) => i.id === id);
+		currentItem = item;
 		start();
 		scanStatus = "scanning";
 	}
 
-	function closeScanModal() {
+	async function closeScanModal() {
+		scanStatus = "saving";
+		await stop();
 		showScanModal = false;
-		stop();
+		scannedLabels = new Set();
+
 	}
+
+	// convert object to form data
+	function toFormData(obj: Record<string, any>) {
+		const formData = new FormData();
+		for (const [k, v] of Object.entries(obj)) {
+			formData.append(k, v);
+		}
+		return formData;
+	}
+
 </script>
 
 <style>
@@ -107,7 +138,7 @@
 						<td>{item.labelCode || ""}</td>
 						<td class="table-{STATUS[item.status]?.color}">{STATUS[item.status]?.name}</td>
 						<td class="d-flex gap-1">
-							<button class="btn btn-outline-warning" on:click={() => scanAndBindLabel(item.id)}>
+							<button class="btn btn-outline-warning" on:click={() => scanAndBindLabel(item)}>
 								<i class="fas fa-barcode"></i>
 							</button>
 							<form
@@ -164,7 +195,7 @@
 	<div class="modal-dialog">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h5 class="modal-title">Scan</h5>
+				<h5 class="modal-title">Label for <i>{currentItem?.product.name}</i><br><small>({currentItem?.product.manufacturer})</small></h5>
 				<button type="button" class="btn-close" on:click={() => closeScanModal()}></button>
 			</div>
 			<div class="modal-body">
