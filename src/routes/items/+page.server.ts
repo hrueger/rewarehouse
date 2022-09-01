@@ -1,11 +1,12 @@
 import type { PageServerLoad, Action } from './$types';
 import { PrismaClient } from '@prisma/client';
 import { fixDates, type ExtendedArray } from '$lib/helpers.server';
+import { error } from '@sveltejs/kit';
 
 const prisma = new PrismaClient();
 
 export const load: PageServerLoad = async () => {
-	const items = await prisma.item.findMany({ include: { currentLocation: true, product: { include: { category: true } } } });
+	const items = await prisma.item.findMany({ include: { currentLocation: true, product: { include: { category: true } }, label: true } });
 	return {
 		items: fixDates(items) as ExtendedArray<typeof items>,
 		categories: await prisma.category.findMany(),
@@ -27,14 +28,19 @@ export const POST: Action = async ({ request }) => {
 
 export const PATCH: Action = async ({ request }) => {
 	const form = await request.formData();
-	await prisma.item.update({
-		where: {
-			id: form.get('id') as string,
-		},
-		data: {
-			labelCode: form.get('labelCode') as string || "",
-		}
-	});
+	const code = parseInt(form.get('code') as string || "");
+	const itemId = form.get('id') as string || "";
+	try {
+		await prisma.label.create({
+			data: {
+				code: code,
+				itemId: itemId,
+			}
+		});
+	} catch {
+		console.log("Error")
+		throw error(409, "Label already exists or Item already has a label");
+	}
 };
 
 export const DELETE: Action = async ({ request }) => {

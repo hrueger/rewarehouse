@@ -2,8 +2,13 @@ import { toast } from '@zerodevx/svelte-toast'
 
 export const success = (m: string) => toast.push(m, {
     theme: {
-        '--toastBackground': 'green',
-        '--toastColor': 'white',
-        '--toastBarBackground': 'olive'
+        '--toastBackground': '#48BB78',
+    '--toastBarBackground': '#2F855A'
+    }
+});
+export const error = (m: string) => toast.push(m, {
+    theme: {
+        '--toastBackground': '#F56565',
+        '--toastBarBackground': '#C53030'
     }
 });

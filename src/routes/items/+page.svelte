@@ -6,6 +6,7 @@
     import { onMount } from 'svelte'
 	import type { Item } from '@prisma/client';
 	import { invalidate } from '$app/navigation';
+	import { error } from '$lib/toasts';
 
 	export let data: PageData;
 
@@ -47,12 +48,19 @@
 				"Accept": "application/json",
 			},
 			body: toFormData({
-				labelCode: decodedText,
+				code: decodedText,
 				id: currentItem.id,
 			}),
-		})
+		}).then(async (res) => {
+			if (res.ok) {
+				return;
+			} else {
+				throw new Error((await res.json()).message);
+			}
+		}).catch((m) => {
+			error(m.toString());
+		});
 		await invalidate();
-		console.log(data.items, currentItem, data.items.indexOf(currentItem as any));
 		currentItem = data.items[data.items.findIndex((i) => i.id === currentItem.id) + 1];
 		if (currentItem) {
 			scanStatus = "scanning";
@@ -135,7 +143,7 @@
 						<td>{item.product.name}</td>
 						<td>{formatLength(item.product.length)}</td>
 						<td class="table-{item.currentLocation.color}">{item.currentLocation.name}</td>
-						<td>{item.labelCode || ""}</td>
+						<td>{item.label?.code || ""}</td>
 						<td class="table-{STATUS[item.status]?.color}">{STATUS[item.status]?.name}</td>
 						<td class="d-flex gap-1">
 							<button class="btn btn-outline-warning" on:click={() => scanAndBindLabel(item)}>

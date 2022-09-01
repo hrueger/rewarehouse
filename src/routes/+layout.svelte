@@ -4,6 +4,8 @@
 	import '../app.scss';
 </script>
 
+<SvelteToast />
+
 <div class="minheight">
 	<Header />
 	
@@ -16,7 +18,6 @@
 	&copy; 2022 Hannes Rüger
 </footer>
 
-<SvelteToast />
 
 <style>
 	@media screen {

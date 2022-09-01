@@ -30,15 +30,25 @@ model Item {
   purchaseDate      DateTime
   product           Product  @relation(fields: [productId], references: [id])
   productId         String
-  group             Group?   @relation(fields: [groupId], references: [id])
-  groupId           String?
+  bundle            Bundle?  @relation(fields: [bundleId], references: [id])
+  bundleId          String?
   currentLocation   Location @relation(fields: [currentLocationId], references: [id])
   currentLocationId String
-  labelCode         String?
   status            Status   @default(AVAILABLE)
+  label             Label?
 }
 
-model Group {
+model Label {
+  code      Int      @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  item      Item?    @relation(fields: [itemId], references: [id])
+  bundle    Bundle?  @relation(fields: [bundleId], references: [id])
+  itemId    String?  @unique
+  bundleId  String?  @unique
+}
+
+model Bundle {
   id         String   @id @default(uuid())
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
@@ -46,6 +56,7 @@ model Group {
   items      Item[]
   category   Category @relation(fields: [categoryId], references: [id])
   categoryId String
+  label      Label?
 }
 
 model Location {
@@ -62,7 +73,7 @@ model Category {
   id       String    @id @default(uuid())
   name     String
   products Product[]
-  groups   Group[]
+  bundles  Bundle[]
 }
 
 enum Status {
