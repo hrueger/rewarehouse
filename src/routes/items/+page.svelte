@@ -3,26 +3,35 @@
 	import { formatLength } from '$lib/helpers';
 	import type { PageData } from '../../../.svelte-kit/types/src/routes/items/$types';
 	import ScanModal from '$lib/ScanModal.svelte';
-	import type { Item } from '@prisma/client';
 	import { request } from '$lib/request';
 	import { invalidate } from '$app/navigation';
-import { STATUS } from '$lib/constants/Status';
+	import { STATUS } from '$lib/constants/Status';
 
 	export let data: PageData;
 
 	let scanModal: ScanModal;
 
-	function scanAndBindLabel(item: Item) {
-		scanModal.start(item);
+	type Itm = typeof data.items[0];
+
+	let currentItem: Itm;
+
+	function scanAndBindLabel(item: Itm) {
+		currentItem = item;
+		scanModal.start();
 	}
 
-	async function onScanResult({detail: {item, label}}: CustomEvent) {
+	async function onScanResult({detail}: CustomEvent) {
 		await request("PATCH", "/items", {
-            code: label,
-            id: item.id,
+            code: detail,
+            id: currentItem.id,
         });
 		await invalidate();
-		scanModal.nextItem();
+		currentItem = data.items[data.items.findIndex((i) => i.id === currentItem.id) + 1];
+		if (currentItem) {
+			scanModal.savedResume();
+		} else {
+			await scanModal.stop();
+		}
 	}
 </script>
 
@@ -84,4 +93,6 @@ import { STATUS } from '$lib/constants/Status';
 	</div>
 </div>
 
-<ScanModal items={data.items} bind:this={scanModal} on:scanResult={onScanResult}></ScanModal>
+<ScanModal bind:this={scanModal} on:scanResult={onScanResult}>
+	Label for <i>{currentItem?.product.name}</i><br><small>({currentItem?.product.manufacturer})</small>
+</ScanModal>

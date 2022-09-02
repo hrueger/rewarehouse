@@ -5,9 +5,6 @@
 	import Modal from "./Modal.svelte";
 
 	const dispatch = createEventDispatcher();
-
-	export let items: any[] = [];
-	let currentItem: Item & { [key: string]: any };
 	
 	async function closeModal() {
 		scanStatus = "saving";
@@ -25,8 +22,7 @@
 		html5Qrcode = new Html5Qrcode('reader');
 	});
 
-	export async function start(item: any) {
-		currentItem = item;
+	export async function start() {
 		scanStatus = "scanning";
 		html5Qrcode.start(
 			{ facingMode: 'environment' },
@@ -39,16 +35,11 @@
 		);
 		showScanModal = true;
 	}
-	export async function nextItem(): Promise<void> {
-		currentItem = items[items.findIndex((i) => i.id === currentItem.id) + 1];
-		if (currentItem) {
-			scanStatus = "scanning";
-		} else {
-			await stop();
-		}
+	export function savedResume(): void {
+		scanStatus = "scanning";
 	}
 
-    async function stop() {
+    export async function stop() {
 		showScanModal = false;
         await html5Qrcode.stop()
     }
@@ -59,7 +50,7 @@
 		}
 		scannedLabels.add(decodedText);
 		scanStatus = "saving";
-		dispatch("scanResult", { item: currentItem, label: decodedText });
+		dispatch("scanResult", decodedText);
     }
 </script>
 
@@ -78,7 +69,7 @@
 
 <Modal on:close={() => closeModal()} hidden={!showScanModal}>
 	<div slot="title">
-		Label for <i>{currentItem?.product.name}</i><br><small>({currentItem?.product.manufacturer})</small>
+		<slot></slot>
 	</div>
 	<div slot="body">
 		<reader id="reader" class:invisible={scanStatus !== "scanning"}/>
