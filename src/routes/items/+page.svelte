@@ -6,16 +6,11 @@
 	import type { Item } from '@prisma/client';
 	import { request } from '$lib/request';
 	import { invalidate } from '$app/navigation';
+import { STATUS } from '$lib/constants/Status';
 
 	export let data: PageData;
 
-	let scanModal: ScanModal["methods"];
-
-	const STATUS = {
-		AVAILABLE: { name: "Available", color: "success" },
-		LENT: { name: "Lent", color: "warning" },
-		USED: { name: "Used", color: "primary" }
-	}
+	let scanModal: ScanModal;
 
 	function scanAndBindLabel(item: Item) {
 		scanModal.start(item);
@@ -89,4 +84,4 @@
 	</div>
 </div>
 
-<ScanModal items={data.items} bind:methods={scanModal} on:scanResult={onScanResult}></ScanModal>
+<ScanModal items={data.items} bind:this={scanModal} on:scanResult={onScanResult}></ScanModal>

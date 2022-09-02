@@ -25,28 +25,26 @@
 		html5Qrcode = new Html5Qrcode('reader');
 	});
 
-	export const methods = {
-		async start(item: any) {
-			currentItem = item;
+	export async function start(item: any) {
+		currentItem = item;
+		scanStatus = "scanning";
+		html5Qrcode.start(
+			{ facingMode: 'environment' },
+			{
+				fps: 10,
+				qrbox: { width: 250, height: 100 },
+			},
+			onScanSuccess,
+			() => undefined,
+		);
+		showScanModal = true;
+	}
+	export async function nextItem(): Promise<void> {
+		currentItem = items[items.findIndex((i) => i.id === currentItem.id) + 1];
+		if (currentItem) {
 			scanStatus = "scanning";
-			html5Qrcode.start(
-				{ facingMode: 'environment' },
-				{
-					fps: 10,
-					qrbox: { width: 250, height: 100 },
-				},
-				onScanSuccess,
-				() => undefined,
-			);
-			showScanModal = true;
-		},
-		async nextItem(): Promise<void> {
-			currentItem = items[items.findIndex((i) => i.id === currentItem.id) + 1];
-			if (currentItem) {
-				scanStatus = "scanning";
-			} else {
-				await stop();
-			}
+		} else {
+			await stop();
 		}
 	}
 
