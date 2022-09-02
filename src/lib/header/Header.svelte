@@ -34,7 +34,7 @@
 						<a class="nav-link" sveltekit:prefetch on:click={closeAll} class:active={$page.url.pathname === '/items'} href="/items">Items</a>
 					</li>
 					<li class="nav-item">
-						<a class="nav-link" sveltekit:prefetch on:click={closeAll} class:active={$page.url.pathname === '/scan'} href="/scan">Ein- / auschecken</a>
+						<a class="nav-link" sveltekit:prefetch on:click={closeAll} class:active={$page.url.pathname === '/scan'} href="/scan">Scan</a>
 					</li>
 				</ul>
 				<ul class="navbar-nav">
